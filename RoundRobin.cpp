@@ -110,39 +110,28 @@ bool test_empty_balancer(const RoundRobin& rr, const t_indexer& indexer);
 bool test_adding_getting(TestRoundRobin& rr, const size_t capacity, const t_indexer& indexer, const std::vector<int>& resources, const std::vector<int>& must_be);
 bool test_indexer(const t_indexer& indexer, const std::vector<size_t>& must_be);
 
-
 template <typename t_testable, typename... t_arguments>
 void test(const std::string& message, t_testable testable, t_arguments... arguments) {
     std::cout << message << (testable(arguments ...) ? " is OK" : " is FAILED") << std::endl;
 }
 
+template <typename t_value, typename t_step, typename t_steps = t_value>
+std::vector<t_value> make_range(t_value since, t_step step, t_steps steps) {
+    std::vector<t_value> range;
+    const t_value till = (since + steps);
+    for (t_value value = since; value < till; value += step) {
+        range.emplace_back(value);
+    }
+    return range;
+}
+
 
 int main() {
-    test("forward  indexer", test_indexer, forward_indexer {}, std::vector<size_t> {
-        std::numeric_limits<size_t>::min() + 0,
-        std::numeric_limits<size_t>::min() + 1,
-        std::numeric_limits<size_t>::min() + 2,
-        std::numeric_limits<size_t>::min() + 3,
-        std::numeric_limits<size_t>::min() + 4,
-        std::numeric_limits<size_t>::min() + 5,
-        std::numeric_limits<size_t>::min() + 6,
-        std::numeric_limits<size_t>::min() + 7,
-        std::numeric_limits<size_t>::min() + 8,
-        std::numeric_limits<size_t>::min() + 9
-    });
+    test("forward  indexer", test_indexer, forward_indexer {},
+        make_range(std::numeric_limits<size_t>::min(), +1, 25u));
 
-    test("backward indexer", test_indexer, backward_indexer {}, std::vector<size_t> {
-        std::numeric_limits<size_t>::max() - 0,
-        std::numeric_limits<size_t>::max() - 1,
-        std::numeric_limits<size_t>::max() - 2,
-        std::numeric_limits<size_t>::max() - 3,
-        std::numeric_limits<size_t>::max() - 4,
-        std::numeric_limits<size_t>::max() - 5,
-        std::numeric_limits<size_t>::max() - 6,
-        std::numeric_limits<size_t>::max() - 7,
-        std::numeric_limits<size_t>::max() - 8,
-        std::numeric_limits<size_t>::max() - 9
-    });
+    test("backward indexer", test_indexer, backward_indexer {},
+        make_range(std::numeric_limits<size_t>::max(), -1, 25u));
 
     test("getting from empty balancer",
         test_empty_balancer,
@@ -162,7 +151,8 @@ int main() {
     return 0;
 }
 
-bool test_empty_balancer(const RoundRobin& rr, const t_indexer& indexer) {
+bool test_empty_balancer(const RoundRobin& rr,
+                         const t_indexer& indexer) {
     try {
         rr.GetResource(indexer);
     }
@@ -173,7 +163,11 @@ bool test_empty_balancer(const RoundRobin& rr, const t_indexer& indexer) {
     return false;
 }
 
-bool test_adding_getting(TestRoundRobin& rr, const size_t capacity, const t_indexer& indexer, const std::vector<int>& resources, const std::vector<int>& must_be) {
+bool test_adding_getting(TestRoundRobin& rr,
+                         const size_t capacity,
+                         const t_indexer& indexer,
+                         const std::vector<int>& resources,
+                         const std::vector<int>& must_be) {
     if (capacity != rr.capacity()) {
         return false;
     }
