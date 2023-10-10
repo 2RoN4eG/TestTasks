@@ -66,9 +66,7 @@ public:
             return;
         }
 
-        const size_t index = indexer.index();
-        const size_t restricted = restrict(index);
-
+        const size_t restricted = restrict_index(indexer);
         _array[restricted] = resource;
     }
 
@@ -81,15 +79,18 @@ public:
             throw std::runtime_error { "array size can not be empty to getting resource" };
         }
 
-        const size_t index = indexer.index();
-        const size_t restricted = restrict(index);
-
+        const size_t restricted = restrict_index(indexer);
         return _array[restricted];
     }
 
 protected:
     inline size_t restrict(size_t index) const {
         return index % _array.size();
+    }
+
+    inline size_t restrict_index(const t_indexer& indexer) const {
+        const size_t index = indexer.index();
+        return restrict(index);
     }
 
 protected:
