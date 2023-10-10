@@ -50,16 +50,17 @@ protected:
 
 
 using t_resource = int;
+constexpr size_t default_capacity { 3u };
 
 class RoundRobin {
 public:
-    RoundRobin(size_t capacity = 3u)
-        : _indexer { capacity }
+    RoundRobin(size_t capacity = default_capacity)
+        : _set_indexer { capacity }
     {
         _array.reserve(capacity);
     }
 
-    void AddResource(t_resource resource, const t_indexer& indexer) {
+    void Set(t_resource resource, const t_indexer& indexer) {
         if (_array.size() < _array.capacity()) {
             _array.emplace_back(resource);
             return;
@@ -71,11 +72,11 @@ public:
         _array[restricted] = resource;
     }
 
-    void AddResource(t_resource resource) {
-        AddResource(resource, _indexer);
+    void Set(t_resource resource) {
+        Set(resource, _set_indexer);
     }
 
-    t_resource GetResource(const t_indexer& indexer) const {
+    t_resource Get(const t_indexer& indexer) const {
         if (!_array.size()) {
             throw std::runtime_error { "array size can not be empty to getting resource" };
         }
@@ -94,7 +95,7 @@ protected:
 protected:
     std::vector<t_resource> _array;
 
-    forward_indexer _indexer;
+    forward_indexer _set_indexer;
 };
 
 
@@ -106,9 +107,17 @@ public:
 };
 
 
-bool test_empty_balancer(const RoundRobin& rr, const t_indexer& indexer);
-bool test_adding_getting(TestRoundRobin& rr, const size_t capacity, const t_indexer& indexer, const std::vector<int>& resources, const std::vector<int>& must_be);
-bool test_indexer(const t_indexer& indexer, const std::vector<size_t>& must_be);
+bool test_empty(const RoundRobin& rr,
+                const t_indexer& to_get);
+
+bool test_set_get(TestRoundRobin& rr,
+                  const size_t capacity,
+                  const t_indexer& to_get,
+                  const std::vector<int>& resources,
+                  const std::vector<int>& must_be);
+
+bool test_indexer(const t_indexer& indexer,
+                  const std::vector<size_t>& must_be);
 
 template <typename t_testable, typename... t_arguments>
 void test(const std::string& message, t_testable testable, t_arguments... arguments) {
@@ -126,7 +135,8 @@ std::vector<t_value> make_range(t_value since, t_step step, t_steps steps) {
 }
 
 
-int main() {
+int main()
+{
     test("forward  indexer", test_indexer, forward_indexer {},
         make_range(std::numeric_limits<size_t>::min(), +1, 25u));
 
@@ -134,15 +144,15 @@ int main() {
         make_range(std::numeric_limits<size_t>::max(), -1, 25u));
 
     test("getting from empty balancer",
-        test_empty_balancer,
+        test_empty,
         RoundRobin {},
         forward_indexer {}
         );
 
     test("adding to empty balancer then getting from balancer",
-        test_adding_getting,
+        test_set_get,
         TestRoundRobin {},
-        size_t { 3u },  // mandatory for test data and results
+        size_t { default_capacity },  // mandatory for test data and results
         forward_indexer {},
         std::vector<int> { 0, 1, 2, 3 },
         std::vector<int> { 3, 1, 2, 3, 1, 2, 3 }
@@ -151,10 +161,9 @@ int main() {
     return 0;
 }
 
-bool test_empty_balancer(const RoundRobin& rr,
-                         const t_indexer& indexer) {
+bool test_empty(const RoundRobin& rr, const t_indexer& to_get) {
     try {
-        rr.GetResource(indexer);
+        rr.Get(to_get);
     }
     catch (...) {
         return true;
@@ -163,22 +172,19 @@ bool test_empty_balancer(const RoundRobin& rr,
     return false;
 }
 
-bool test_adding_getting(TestRoundRobin& rr,
-                         const size_t capacity,
-                         const t_indexer& indexer,
-                         const std::vector<int>& resources,
-                         const std::vector<int>& must_be) {
+bool test_set_get(TestRoundRobin& rr, const size_t capacity, const t_indexer& to_get,
+                  const std::vector<int>& resources, const std::vector<int>& must_be) {
     if (capacity != rr.capacity()) {
         return false;
     }
 
     for (const int resource : resources) {
-        rr.AddResource(resource);
+        rr.Set(resource);
     }
 
     bool result { true };
     for (const size_t resource : must_be) {
-        result = result & (resource == rr.GetResource(indexer));
+        result = result & (resource == rr.Get(to_get));
     }
 
     return result;
