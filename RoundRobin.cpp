@@ -54,11 +54,11 @@ protected:
 
 
 using t_resource = int;
-constexpr size_t default_capacity { 3u };
+constexpr size_t default_rr_capacity { 3u };
 
 class RoundRobin {
 public:
-    RoundRobin(const size_t capacity = default_capacity)
+    RoundRobin(const size_t capacity = default_rr_capacity)
         : _to_set_indexer { capacity }
     {
         _array.reserve(capacity);
@@ -119,7 +119,7 @@ void test(const std::string& message, t_testable testable, t_arguments... argume
 }
 
 template <typename t_value, typename t_step, typename t_steps = t_value>
-std::vector<t_value> make_range(t_value since, t_step step, t_steps steps) {
+std::vector<t_value> make_range(const t_value since, const t_step step, const t_steps steps) {
     std::vector<t_value> range;
     const t_value till = (since + steps);
     for (t_value value = since; value < till; value += step) {
@@ -140,7 +140,7 @@ int main() {
         RoundRobin {}, forward_indexer {} );
 
     test("setting to empty then getting from", test_set_get,
-        TestRoundRobin {}, default_capacity, forward_indexer {},
+        TestRoundRobin {}, default_rr_capacity, forward_indexer {},
         std::vector<int> { 0, 1, 2, 3 },
         std::vector<int> { 3, 1, 2, 3, 1, 2, 3 }
         );
