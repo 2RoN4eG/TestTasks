@@ -6,7 +6,7 @@
 
 class t_indexer {
 public:
-    size_t operator()() const {
+    inline size_t operator()() const {
         return index();
     }
 
