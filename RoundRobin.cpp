@@ -6,6 +6,10 @@
 
 class t_indexer {
 public:
+    size_t operator()() const {
+        return index();
+    }
+
     virtual ~t_indexer() = 0;
 
     virtual size_t index() const = 0;
@@ -55,47 +59,41 @@ constexpr size_t default_capacity { 3u };
 class RoundRobin {
 public:
     RoundRobin(size_t capacity = default_capacity)
-        : _to_set { capacity }
+        : _to_set_indexer { capacity }
     {
         _array.reserve(capacity);
     }
 
-    void Set(t_resource resource, const t_indexer& indexer) {
+    void Set(t_resource resource, const t_indexer& index) {
         if (_array.size() < _array.capacity()) {
             _array.emplace_back(resource);
             return;
         }
 
-        _array[ restrict(indexer) ] = resource;
+        _array[ restrict(index) ] = resource;
     }
 
     void Set(t_resource resource) {
-        Set(resource, _to_set);
+        Set(resource, _to_set_indexer);
     }
 
-    t_resource Get(const t_indexer& indexer) const {
+    t_resource Get(const t_indexer& index) const {
         if (!_array.size()) {
             throw std::runtime_error { "array size can not be empty to getting resource" };
         }
 
-        return _array[ restrict(indexer) ];
+        return _array[ restrict(index) ];
     }
 
 protected:
-    inline size_t restrict(size_t index) const {
-        return index % _array.size();
-    }
-
-    inline size_t restrict(const t_indexer& indexer) const {
-        const size_t index = indexer.index();
-        return restrict(index);
+    inline size_t restrict(const t_indexer& index) const {
+        return index() % _array.size();
     }
 
 protected:
     std::vector<t_resource> _array;
 
-    // should be external
-    forward_indexer _to_set;
+    forward_indexer _to_set_indexer;
 };
 
 
@@ -108,14 +106,16 @@ public:
 
 
 bool test_empty(const RoundRobin& rr, const t_indexer& to_get);
+
 bool test_set_get(TestRoundRobin& rr, const size_t capacity, const t_indexer& to_get,
                   const std::vector<int>& resources, const std::vector<int>& must_be);
-bool test_indexer(const t_indexer& indexer,
+
+bool test_indexer(const t_indexer& index,
                   const std::vector<size_t>& must_be);
 
 template <typename t_testable, typename... t_arguments>
 void test(const std::string& message, t_testable testable, t_arguments... arguments) {
-    std::cout << message << (testable(arguments ...) ? " is OK" : " is FAILED") << std::endl;
+    std::cout << "test for '" << message << "'" << (testable(arguments ...) ? " is OK" : " is FAILED") << std::endl;
 }
 
 template <typename t_value, typename t_step, typename t_steps = t_value>
@@ -136,10 +136,10 @@ int main() {
     test("backward indexer", test_indexer,
          backward_indexer {}, make_range(std::numeric_limits<size_t>::max(), -1, 25u));
 
-    test("getting from empty balancer", test_empty,
+    test("getting from empty", test_empty,
         RoundRobin {}, forward_indexer {} );
 
-    test("adding to empty balancer then getting from balancer", test_set_get,
+    test("setting to empty then getting from", test_set_get,
         TestRoundRobin {}, size_t { default_capacity }, forward_indexer {},
         std::vector<int> { 0, 1, 2, 3 },
         std::vector<int> { 3, 1, 2, 3, 1, 2, 3 }
@@ -159,28 +159,28 @@ bool test_empty(const RoundRobin& rr, const t_indexer& to_get) {
     return false;
 }
 
-bool test_set_get(TestRoundRobin& rr, const size_t capacity, const t_indexer& to_get,
-                  const std::vector<int>& resources, const std::vector<int>& must_be) {
+bool test_set_get(TestRoundRobin& rr, const size_t capacity, const t_indexer& index,
+                  const std::vector<int>& to_set, const std::vector<int>& must_be) {
     if (capacity != rr.capacity()) {
         return false;
     }
 
-    for (const int resource : resources) {
+    for (const t_resource resource : to_set) {
         rr.Set(resource);
     }
 
     bool result { true };
-    for (const size_t resource : must_be) {
-        result = result & (resource == rr.Get(to_get));
+    for (const t_resource resource : must_be) {
+        result = result & (resource == rr.Get(index));
     }
 
     return result;
 }
 
-bool test_indexer(const t_indexer& indexer, const std::vector<size_t>& must_be) {
+bool test_indexer(const t_indexer& index, const std::vector<size_t>& must_be) {
     bool result { true };
-    for (const size_t index : must_be) {
-        result = result & (index == indexer.index());
+    for (const size_t value : must_be) {
+        result = result & (value == index());
     }
 
     return result;
