@@ -114,8 +114,8 @@ bool test_indexer(const t_indexer& index,
                   const std::vector<size_t>& must_be);
 
 template <typename t_testable, typename... t_arguments>
-void test(const std::string& message, t_testable testable, t_arguments... arguments) {
-    std::cout << "test for '" << message << "'" << (testable(arguments ...) ? " is OK" : " is FAILED") << std::endl;
+void test(const std::string& message, t_testable testable, t_arguments ...arguments) {
+    std::cout << "test for '" << message << "'" << (testable(arguments...) ? " is OK" : " is FAILED") << std::endl;
 }
 
 template <typename t_value, typename t_step, typename t_steps = t_value>
