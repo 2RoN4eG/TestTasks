@@ -55,7 +55,7 @@ constexpr size_t default_capacity { 3u };
 class RoundRobin {
 public:
     RoundRobin(size_t capacity = default_capacity)
-        : _set_indexer { capacity }
+        : _to_set { capacity }
     {
         _array.reserve(capacity);
     }
@@ -66,11 +66,11 @@ public:
             return;
         }
 
-        _array[ restrict_index(indexer) ] = resource;
+        _array[ restrict(indexer) ] = resource;
     }
 
     void Set(t_resource resource) {
-        Set(resource, _set_indexer);
+        Set(resource, _to_set);
     }
 
     t_resource Get(const t_indexer& indexer) const {
@@ -78,7 +78,7 @@ public:
             throw std::runtime_error { "array size can not be empty to getting resource" };
         }
 
-        return _array[ restrict_index(indexer) ];
+        return _array[ restrict(indexer) ];
     }
 
 protected:
@@ -86,7 +86,7 @@ protected:
         return index % _array.size();
     }
 
-    inline size_t restrict_index(const t_indexer& indexer) const {
+    inline size_t restrict(const t_indexer& indexer) const {
         const size_t index = indexer.index();
         return restrict(index);
     }
@@ -94,7 +94,8 @@ protected:
 protected:
     std::vector<t_resource> _array;
 
-    forward_indexer _set_indexer;
+    // should be external
+    forward_indexer _to_set;
 };
 
 
@@ -106,15 +107,9 @@ public:
 };
 
 
-bool test_empty(const RoundRobin& rr,
-                const t_indexer& to_get);
-
-bool test_set_get(TestRoundRobin& rr,
-                  const size_t capacity,
-                  const t_indexer& to_get,
-                  const std::vector<int>& resources,
-                  const std::vector<int>& must_be);
-
+bool test_empty(const RoundRobin& rr, const t_indexer& to_get);
+bool test_set_get(TestRoundRobin& rr, const size_t capacity, const t_indexer& to_get,
+                  const std::vector<int>& resources, const std::vector<int>& must_be);
 bool test_indexer(const t_indexer& indexer,
                   const std::vector<size_t>& must_be);
 
