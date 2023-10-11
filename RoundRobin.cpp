@@ -64,7 +64,7 @@ public:
         _array.reserve(capacity);
     }
 
-    void Set(t_resource resource, const t_indexer& index) {
+    void Set(const t_indexer& index, const t_resource resource) {
         if (_array.size() < _array.capacity()) {
             _array.emplace_back(resource);
             return;
@@ -73,8 +73,8 @@ public:
         _array[ restrict(index) ] = resource;
     }
 
-    void Set(t_resource resource) {
-        Set(resource, _to_set_indexer);
+    void Set(const t_resource resource) {
+        Set(_to_set_indexer, resource);
     }
 
     t_resource Get(const t_indexer& index) const {
