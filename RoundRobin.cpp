@@ -66,8 +66,7 @@ public:
             return;
         }
 
-        const size_t restricted = restrict_index(indexer);
-        _array[restricted] = resource;
+        _array[ restrict_index(indexer) ] = resource;
     }
 
     void Set(t_resource resource) {
@@ -79,8 +78,7 @@ public:
             throw std::runtime_error { "array size can not be empty to getting resource" };
         }
 
-        const size_t restricted = restrict_index(indexer);
-        return _array[restricted];
+        return _array[ restrict_index(indexer) ];
     }
 
 protected:
@@ -136,25 +134,18 @@ std::vector<t_value> make_range(t_value since, t_step step, t_steps steps) {
 }
 
 
-int main()
-{
-    test("forward  indexer", test_indexer, forward_indexer {},
-        make_range(std::numeric_limits<size_t>::min(), +1, 25u));
+int main() {
+    test("forward  indexer", test_indexer,
+         forward_indexer {}, make_range(std::numeric_limits<size_t>::min(), +1, 25u));
 
-    test("backward indexer", test_indexer, backward_indexer {},
-        make_range(std::numeric_limits<size_t>::max(), -1, 25u));
+    test("backward indexer", test_indexer,
+         backward_indexer {}, make_range(std::numeric_limits<size_t>::max(), -1, 25u));
 
-    test("getting from empty balancer",
-        test_empty,
-        RoundRobin {},
-        forward_indexer {}
-        );
+    test("getting from empty balancer", test_empty,
+        RoundRobin {}, forward_indexer {} );
 
-    test("adding to empty balancer then getting from balancer",
-        test_set_get,
-        TestRoundRobin {},
-        size_t { default_capacity },  // mandatory for test data and results
-        forward_indexer {},
+    test("adding to empty balancer then getting from balancer", test_set_get,
+        TestRoundRobin {}, size_t { default_capacity }, forward_indexer {},
         std::vector<int> { 0, 1, 2, 3 },
         std::vector<int> { 3, 1, 2, 3, 1, 2, 3 }
         );
