@@ -21,7 +21,7 @@ t_indexer::~t_indexer() {
 
 class forward_indexer : public t_indexer {
 public:
-    forward_indexer(size_t since = std::numeric_limits<size_t>::min())
+    forward_indexer(const size_t since = std::numeric_limits<size_t>::min())
         : _index { since }
     { }
 
@@ -38,7 +38,7 @@ protected:
 
 class backward_indexer : public t_indexer {
 public:
-    backward_indexer(size_t since = std::numeric_limits<size_t>::max())
+    backward_indexer(const size_t since = std::numeric_limits<size_t>::max())
         : _index { since }
     { }
 
@@ -58,7 +58,7 @@ constexpr size_t default_capacity { 3u };
 
 class RoundRobin {
 public:
-    RoundRobin(size_t capacity = default_capacity)
+    RoundRobin(const size_t capacity = default_capacity)
         : _to_set_indexer { capacity }
     {
         _array.reserve(capacity);
