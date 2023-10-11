@@ -107,8 +107,8 @@ public:
 
 bool test_empty(const RoundRobin& rr, const t_indexer& to_get);
 
-bool test_set_get(TestRoundRobin& rr, const size_t capacity, const t_indexer& to_get,
-                  const std::vector<int>& resources, const std::vector<int>& must_be);
+bool test_set_get(TestRoundRobin& rr, const size_t capacity, const t_indexer& index_to_get,
+                  const std::vector<int>& to_set, const std::vector<int>& must_be);
 
 bool test_indexer(const t_indexer& index,
                   const std::vector<size_t>& must_be);
@@ -159,7 +159,7 @@ bool test_empty(const RoundRobin& rr, const t_indexer& to_get) {
     return false;
 }
 
-bool test_set_get(TestRoundRobin& rr, const size_t capacity, const t_indexer& index,
+bool test_set_get(TestRoundRobin& rr, const size_t capacity, const t_indexer& index_to_get,
                   const std::vector<int>& to_set, const std::vector<int>& must_be) {
     if (capacity != rr.capacity()) {
         return false;
@@ -171,7 +171,7 @@ bool test_set_get(TestRoundRobin& rr, const size_t capacity, const t_indexer& in
 
     bool result { true };
     for (const t_resource resource : must_be) {
-        result = result & (resource == rr.Get(index));
+        result = result & (resource == rr.Get(index_to_get));
     }
 
     return result;
